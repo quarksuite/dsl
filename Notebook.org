@@ -1,0 +1,168 @@
+#+TITLE: QuarkSuite DSL (v0.1.0)
+
+* Table of Contents :TOC@5:
+- [[#summary][Summary]]
+- [[#api][API]]
+  - [[#dsl][DSL]]
+    - [[#preamble][Preamble]]
+    - [[#dsl-setup][DSL Setup]]
+    - [[#definitions][Definitions]]
+      - [[#color-color-def][Color (=<color-def>=)]]
+
+* Summary
+
+This document is my scratchpad/workspace for QuarkSuite's new and experimental
+DSL (domain specific language).
+
+Somewhat unconventionally, this DSL is built on web components. The elements
+defined in this project work as a kind of translation layer for the
+core functionality of QuarkSuite v2.
+
+The aim is a *declarative workflow* through HTML that allows you to translate data
+generated from the core and also transmit data to the core.
+
+This is a work in progress I'm developing in conjunction with the refactor and
+enhancements of the core for v2. This is because they're interoperable and
+/must/ speak the same data language as each other to network seamlessly.
+
+If you want to see the work I'm doing on QuarkSuite Core v2, you can check out
+its progress at its own repo
+
+* API
+** DSL
+:PROPERTIES:
+:header-args:js: :tangle "./lib.js" :mkdirp yes :comments link
+:END:
+
+The DSL of QuarkSuite v2 is brand new and experimental. So we'll want to be extremely careful about how we implement
+it. We're going to use vanilla web components because the nature of the DSL is too basic to add the overhead of a
+library.
+
+The resource I use to guide the implementation is, of course, the [[https://developer.mozilla.org/en-US/docs/Web/Web_Components][MDN docs on web components]].
+
+Alright, but before we get into how to implement the DSL, I'll need you to understand exactly /what/ we're building.
+
+*** Preamble
+
+The intended goal of the DSL is to work as a direct translation of the core functionality. This means we'll be using web
+components a bit differently from the way you'd expect. The crucial bit: the translated actions and emitters need to be
+able to access /any/ defined values or collections of their respective types.
+
+This leads to two types of elements:
+
++ ~<x-def as="" from="">~
++ ~<x-func from="" as="">~
+
+The DSL workflow is essentially defining values and collections (=def=) and then passing them through actions/emitters
+(collectively referred to as =func= here).
+
+Let's make this a bit more concrete with an example. Let's say we want to create a color =#bada55= as =brand= and then
+format it to rgb before generating a double complementary harmony. Then let's say we want to pass it through a color
+vision check for =achromatopsia= so we can adjust for contrast.
+
+Here's that process with the core workflow:
+
+#+BEGIN_SRC js :tangle no
+const base = rgb("#bad555");
+const scheme = harmony({ configuration: "double" }, base);
+
+const achromatopsia = propagate(preset(vision, { as: "achromatopsia" }), scheme);
+
+// Then render data
+#+END_SRC
+
+Here's how it should translate through the DSL:
+
+#+BEGIN_SRC html
+<color-def as="base" swatch="#bada55" to="rgb"></color-def>
+<color-harmony from="base" as="scheme" configuration="double"></color-harmony>
+<color-vision from="scheme" type="achromatopsia"></color-vision>
+#+END_SRC
+
+The idea is if you ever change the =<color-def>= this will trigger an update in /every/ action/emitter
+(=<color-harmony>/<color-vision>= in our example) that directly references it.
+
+*** DSL Setup
+
+Before anything, let's set up a little HTML workspace so we can build and debug.
+
+#+BEGIN_SRC html :tangle "./index.html"
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>QuarkSuite v2 DSL Workspace</title>
+    <script type="module" src="/lib.js"></script>
+    <script type="module" src="/color.js"></script>
+  </head>
+  <body>
+  </body>
+</html>
+#+END_SRC
+
+The very first thing we'll do is write some mixins handling the initialization of our setters and getters and some very
+basic reactivity for properties and attributes. That way, we can focus on the unique requirements of each element in the
+DSL.
+
+#+BEGIN_SRC js
+export function connected(DslElement) {
+  return class extends DslElement {
+    constructor() {
+      super();
+    }
+
+    safeSetAttribute(name, value) {
+      if (this.getAttribute(name) !== value) this.setAttribute(name, value);
+    }
+
+    // Definition and referencing are constant on every DSL element
+    set as(value) {
+      this.safeSetAttribute("as", value);
+    }
+
+    get as() {
+      return this.getAttribute("as");
+    }
+
+    set from(value) {
+      this.safeSetAttribute("from", value);
+    }
+
+    get from() {
+      return this.getAttribute("from");
+    }
+  };
+}
+
+export function reactive(props, DslElement) {
+  return class extends DslElement {
+    // as and from are always observed
+    static get observedAttributes() {
+      return ["as", "from", ...props];
+    }
+
+    // set initial update behavior
+    attributeChangedCallback(name, oldValue, newValue) {
+      this[name] = newValue;
+    }
+  };
+}
+#+END_SRC
+
+*** Definitions
+
+=<x-def>= elements in the DSL are important not just for defining your data but because they are the base rendering
+element of their particular type.
+
+Every change performed by an =<x-func>= element will render those changes /as/ a collection of =<x-def>= elements. So
+correctly implementing them is essential to ensuring anything else works.
+
+**** Color (=<color-def>=)
+
+Color definition will define not just the color but also translate the most basic color actions (=convert()=,
+=adjust()=, =mix()=) from the core. So those three will not have equivalents in the DSL.
+
+#+BEGIN_SRC js
+
+#+END_SRC
