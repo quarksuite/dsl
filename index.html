@@ -1,12 +1,101 @@
-<!doctype html>
+<!-- [[file:Notebook.org::*Workspace][Workspace:1]] -->
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8"/>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>QuarkSuite v2 DSL Workspace</title>
     <script type="module" src="/lib.js"></script>
-    <script type="module" src="/color.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto:ital,wght@0,100;0,300;0,400;0,700;0,900;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
+    <header>
+      <h1>QuarkSuite v2 DSL Workspace</h1>
+    </header>
+    <main>
+      <h2>Base Color Token</h2>
+      <section>
+        <color-token></color-token>
+        <color-token swatch="dodgerblue"></color-token>
+      </section>
+      <h2>Color Definitions</h2>
+      <section>
+        <color-defn
+          as="brand"
+          swatch="#7ea"
+          action="convert"
+          to="rgb"
+        ></color-defn>
+        <color-defn as="sample" swatch="#ea7"></color-defn>
+      </section>
+      <h2>Color Referencing</h2>
+      <section>
+        <color-defn as="a" from="brand"></color-defn>
+        <color-defn as="b" from="sample"></color-defn>
+      </section>
+      <h2>Action: Color Adjustment</h2>
+      <section>
+        <color-defn
+          as="accent"
+          from="brand"
+          action="adjust"
+          hue="128"
+        ></color-defn>
+        <color-defn
+          as="highlight"
+          from="accent"
+          action="adjust"
+          lightness="-25"
+        ></color-defn>
+      </section>
+      <h2>Action: Color Mixture</h2>
+      <section>
+        <color-defn
+          as="c"
+          from="highlight"
+          action="adjust"
+          lightness="-20"
+          chroma="25"
+          hue="60"
+        ></color-defn>
+        <color-defn
+          as="links"
+          from="c"
+          action="mix"
+          target="chartreuse"
+          strength="75"
+        ></color-defn>
+        <color-defn
+          as="links-hover"
+          from="links"
+          action="mix"
+          target="white"
+          strength="30"
+        ></color-defn>
+        <color-defn
+          as="links-visited"
+          from="links"
+          action="mix"
+          target="gray"
+          strength="60"
+        ></color-defn>
+      </section>
+      <h2>Color Constructions</h2>
+      <color-cons
+        as="main accent highlight spot"
+        swatch="dodgerblue"
+        action="mix"
+        target="magenta"
+        strength="48"
+        steps="3"
+      ></color-cons>
+    </main>
   </body>
 </html>
+<!-- Workspace:1 ends here -->

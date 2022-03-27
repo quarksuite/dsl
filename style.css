@@ -1,0 +1,33 @@
+/* [[file:Notebook.org::*Workspace][Workspace:2]] */
+:root {
+  margin: 0;
+  padding: 0;
+}
+
+:root:after: {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Roboto, sans-serif;
+}
+
+section {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 2ex;
+}
+
+color-token,
+color-defn {
+  flex: 1;
+  flex-basis: 45ch;
+}
+
+color-token {
+  --data-family: Roboto, sans-serif;
+  --code-family: Roboto Mono, monsopace;
+  flex: 1;
+  flex-basis: 45ch;
+}
+/* Workspace:2 ends here */

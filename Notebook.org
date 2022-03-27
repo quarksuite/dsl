@@ -3,33 +3,36 @@
 * Table of Contents :TOC@5:
 - [[#summary][Summary]]
 - [[#api][API]]
-  - [[#dsl][DSL]]
+  - [[#library][Library]]
     - [[#preamble][Preamble]]
     - [[#dsl-setup][DSL Setup]]
-    - [[#definitions][Definitions]]
-      - [[#color-color-def][Color (=<color-def>=)]]
+      - [[#workspace][Workspace]]
+    - [[#color][Color]]
+    - [[#core-v2-setup][Core v2 Setup]]
+    - [[#mixins][Mixins]]
+    - [[#color-1][Color]]
+      - [[#colortoken][ColorToken]]
+      - [[#colordefn][ColorDefn]]
+      - [[#colorcons][ColorCons]]
+      - [[#colordict][ColorDict]]
 
 * Summary
 
-This document is my scratchpad/workspace for QuarkSuite's new and experimental
-DSL (domain specific language).
+This document is my scratchpad/workspace for QuarkSuite's new and experimental DSL (domain specific language).
 
-Somewhat unconventionally, this DSL is built on web components. The elements
-defined in this project work as a kind of translation layer for the
-core functionality of QuarkSuite v2.
+Somewhat unconventionally, it's a DSL built on web components. The elements defined in this project work as a kind of
+translation layer for the functionality of Core v2.
 
-The aim is a *declarative workflow* through HTML that allows you to translate data
-generated from the core and also transmit data to the core.
+The aim is a *declarative workflow* through HTML that allows you to translate data generated from the core and also
+transmit data to the core.
 
-This is a work in progress I'm developing in conjunction with the refactor and
-enhancements of the core for v2. This is because they're interoperable and
-/must/ speak the same data language as each other to network seamlessly.
+This is a work in progress I'm developing in conjunction with the refactor and enhancements of Core v2. This is
+because they're interoperable and /must/ speak the same data language as each other to network seamlessly.
 
-If you want to see the work I'm doing on QuarkSuite Core v2, you can check out
-its progress at its own repo
+If you want to see the work I'm doing on QuarkSuite Core v2, you can [[https://github.com/quarksuite/core/tree/v2-workspace][check out its progress at its own repo]].
 
 * API
-** DSL
+** Library
 :PROPERTIES:
 :header-args:js: :tangle "./lib.js" :mkdirp yes :comments link
 :END:
@@ -46,15 +49,16 @@ Alright, but before we get into how to implement the DSL, I'll need you to under
 
 The intended goal of the DSL is to work as a direct translation of the core functionality. This means we'll be using web
 components a bit differently from the way you'd expect. The crucial bit: the translated actions and emitters need to be
-able to access /any/ defined values or collections of their respective types.
+able to access defined values or collections of their respective types.
 
-This leads to two types of elements:
+This leads to four types of elements:
 
-+ ~<x-def as="" from="">~
-+ ~<x-func from="" as="">~
++ ~<x-defn as="" from="" action="">~
++ ~<x-cons as="" from="" action="">~
++ ~<x-token>~
++ ~<x-dict from="">~
 
-The DSL workflow is essentially defining values and collections (=def=) and then passing them through actions/emitters
-(collectively referred to as =func= here).
+The DSL workflow is essentially defining values and collections (=def=) and transforming them.
 
 Let's make this a bit more concrete with an example. Let's say we want to create a color =#bada55= as =brand= and then
 format it to rgb before generating a double complementary harmony. Then let's say we want to pass it through a color
@@ -63,8 +67,8 @@ vision check for =achromatopsia= so we can adjust for contrast.
 Here's that process with the core workflow:
 
 #+BEGIN_SRC js :tangle no
-const base = rgb("#bad555");
-const scheme = harmony({ configuration: "double" }, base);
+const brand = convert("rgb", "#bad555");
+const scheme = harmony({ configuration: "double" }, brand);
 
 const achromatopsia = propagate(preset(vision, { as: "achromatopsia" }), scheme);
 
@@ -73,52 +77,216 @@ const achromatopsia = propagate(preset(vision, { as: "achromatopsia" }), scheme)
 
 Here's how it should translate through the DSL:
 
-#+BEGIN_SRC html
-<color-def as="base" swatch="#bada55" to="rgb"></color-def>
-<color-harmony from="base" as="scheme" configuration="double"></color-harmony>
-<color-vision from="scheme" type="achromatopsia"></color-vision>
-#+END_SRC
+#+BEGIN_SRC html :tangle no
+<!-- Definitions also handle basic color actions -->
+<color-defn as="brand" swatch="#bada55" action="convert" to="rgb"></color-def>
 
-The idea is if you ever change the =<color-def>= this will trigger an update in /every/ action/emitter
-(=<color-harmony>/<color-vision>= in our example) that directly references it.
+<!-- Constructions handle color collection actions -->
+<color-cons as="scheme" from="brand" action="harmony" configuration="double"></color-cons>
+<color-cons as="achromatopsia" from="scheme" action="vision" type="achromatopsia"></color-cons>
+#+END_SRC
 
 *** DSL Setup
 
+**** Workspace
+
 Before anything, let's set up a little HTML workspace so we can build and debug.
 
-#+BEGIN_SRC html :tangle "./index.html"
-<!doctype html>
+#+BEGIN_SRC html :tangle "./index.html" :comments link
+<!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8"/>
+    <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>QuarkSuite v2 DSL Workspace</title>
     <script type="module" src="/lib.js"></script>
-    <script type="module" src="/color.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto:ital,wght@0,100;0,300;0,400;0,700;0,900;1,400&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
+    <header>
+      <h1>QuarkSuite v2 DSL Workspace</h1>
+    </header>
+    <main>
+      <h2>Base Color Token</h2>
+      <section>
+        <color-token></color-token>
+        <color-token swatch="dodgerblue"></color-token>
+      </section>
+      <h2>Color Definitions</h2>
+      <section>
+        <color-defn
+          as="brand"
+          swatch="#7ea"
+          action="convert"
+          to="rgb"
+        ></color-defn>
+        <color-defn as="sample" swatch="#ea7"></color-defn>
+      </section>
+      <h2>Color Referencing</h2>
+      <section>
+        <color-defn as="a" from="brand"></color-defn>
+        <color-defn as="b" from="sample"></color-defn>
+      </section>
+      <h2>Action: Color Adjustment</h2>
+      <section>
+        <color-defn
+          as="accent"
+          from="brand"
+          action="adjust"
+          hue="128"
+        ></color-defn>
+        <color-defn
+          as="highlight"
+          from="accent"
+          action="adjust"
+          lightness="-25"
+        ></color-defn>
+      </section>
+      <h2>Action: Color Mixture</h2>
+      <section>
+        <color-defn
+          as="c"
+          from="highlight"
+          action="adjust"
+          lightness="-20"
+          chroma="25"
+          hue="60"
+        ></color-defn>
+        <color-defn
+          as="links"
+          from="c"
+          action="mix"
+          target="chartreuse"
+          strength="75"
+        ></color-defn>
+        <color-defn
+          as="links-hover"
+          from="links"
+          action="mix"
+          target="white"
+          strength="30"
+        ></color-defn>
+        <color-defn
+          as="links-visited"
+          from="links"
+          action="mix"
+          target="gray"
+          strength="60"
+        ></color-defn>
+      </section>
+      <h2>Color Constructions</h2>
+      <color-cons
+        as="main accent highlight spot"
+        swatch="dodgerblue"
+        action="mix"
+        target="magenta"
+        strength="48"
+        steps="3"
+      ></color-cons>
+    </main>
   </body>
 </html>
 #+END_SRC
 
-The very first thing we'll do is write some mixins handling the initialization of our setters and getters and some very
-basic reactivity for properties and attributes. That way, we can focus on the unique requirements of each element in the
-DSL.
+And some basic styling:
+
+#+BEGIN_SRC css :tangle "./style.css" :comments link
+:root {
+  margin: 0;
+  padding: 0;
+}
+
+:root:after: {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Roboto, sans-serif;
+}
+
+section {
+  display: flex;
+  flex-flow: row wrap;
+  gap: 2ex;
+}
+
+color-token,
+color-defn {
+  flex: 1;
+  flex-basis: 45ch;
+}
+
+color-token {
+  --data-family: Roboto, sans-serif;
+  --code-family: Roboto Mono, monsopace;
+  flex: 1;
+  flex-basis: 45ch;
+}
+#+END_SRC
+
+*** Color
+*** Core v2 Setup
+
+Since we're developing a translation layer, we'll need to pull in the Core v2 module so we have access to everything
+we're converting.
 
 #+BEGIN_SRC js
-export function connected(DslElement) {
-  return class extends DslElement {
-    constructor() {
-      super();
-    }
+import {
+  delegate,
+  pipeline,
+  preset,
+  process,
+  propagate,
+} from "https://x.nest.land/quarksuite:core@2.0.0-11/v2/fn.js";
+import {
+  accessibility,
+  adjust,
+  contrast,
+  convert,
+  harmony,
+  illuminant,
+  mix,
+  palette,
+  tokens,
+  vision,
+} from "https://x.nest.land/quarksuite:core@2.0.0-11/v2/color.js";
+#+END_SRC
 
-    safeSetAttribute(name, value) {
-      if (this.getAttribute(name) !== value) this.setAttribute(name, value);
-    }
+*** Mixins
 
-    // Definition and referencing are constant on every DSL element
+This section defines mixins for better organization and reuse of class behavior.
+
+#+BEGIN_SRC js
+function reflected(Element) {
+  return class extends Element {
+    reflect(name, value) {
+      if (value) {
+        this.setAttribute(name, value);
+      } else {
+        this.removeAttribute(name);
+      }
+    }
+  };
+}
+
+function observed(attrs, Element) {
+  return class extends Element {
+    static get observedAttributes() {
+      return attrs;
+    }
+  };
+}
+
+function definitions(Element) {
+  return class extends Element {
     set as(value) {
-      this.safeSetAttribute("as", value);
+      this.reflect("as", value);
     }
 
     get as() {
@@ -126,7 +294,7 @@ export function connected(DslElement) {
     }
 
     set from(value) {
-      this.safeSetAttribute("from", value);
+      this.reflect("from", value);
     }
 
     get from() {
@@ -135,33 +303,451 @@ export function connected(DslElement) {
   };
 }
 
-export function reactive(props, DslElement) {
-  return class extends DslElement {
-    // as and from are always observed
-    static get observedAttributes() {
-      return ["as", "from", ...props];
+function initColorActions(Element) {
+  return class extends Element {
+    constructor() {
+      super();
+
+      this.action = this.action;
+
+      if (this.action === "convert") {
+        this.to = this.to;
+      }
+
+      if (this.action === "adjust" || this.action === "mix") {
+        this.steps = this.steps;
+      }
+
+      if (this.action === "adjust") {
+        this.lightness = this.lightness;
+        this.chroma = this.chroma;
+        this.hue = this.hue;
+        this.alpha = this.alpha;
+      }
+
+      if (this.action === "mix") {
+        this.target = this.target;
+        this.strength = this.strength;
+      }
     }
 
-    // set initial update behavior
-    attributeChangedCallback(name, oldValue, newValue) {
-      this[name] = newValue;
+    // Action accessor
+    set action(value) {
+      this.reflect("action", value);
+    }
+
+    get action() {
+      return this.getAttribute("action");
+    }
+
+    // Conversion accessor
+    set to(value) {
+      this.reflect("to", value);
+    }
+
+    get to() {
+      return this.getAttribute("to");
+    }
+
+    // Adjustment accessors
+    set lightness(value) {
+      this.reflect("lightness", value);
+    }
+
+    get lightness() {
+      return this.getAttribute("lightness");
+    }
+
+    set chroma(value) {
+      this.reflect("chroma", value);
+    }
+
+    get chroma() {
+      return this.getAttribute("chroma");
+    }
+
+    set hue(value) {
+      this.reflect("hue", value);
+    }
+
+    get hue() {
+      return this.getAttribute("hue");
+    }
+
+    set alpha(value) {
+      this.reflect("alpha", value);
+    }
+
+    get alpha() {
+      return this.getAttribute("alpha");
+    }
+
+    // Mixture accessors
+    set target(value) {
+      this.reflect("target", value);
+    }
+
+    get target() {
+      return this.getAttribute("target");
+    }
+
+    set strength(value) {
+      this.reflect("strength", value);
+    }
+
+    get strength() {
+      return this.getAttribute("strength");
+    }
+
+    // Interpolation accessor
+
+    set steps(value) {
+      this.reflect("steps", value);
+    }
+
+    get steps() {
+      return this.getAttribute("steps");
+    }
+  };
+}
+
+function color_actions(Element) {
+  return class extends Element {
+    constructor() {
+      super();
+
+      this.scale = this.scale;
+    }
+
+    convert() {
+      this.swatch = convert(this.to, this.swatch);
+    }
+
+    adjust() {
+      const [lightness, chroma, hue, alpha, steps] = [
+        this.lightness,
+        this.chroma,
+        this.hue,
+        this.alpha,
+        this.steps,
+      ].map((prop) => (prop ? parseFloat(prop) : 0));
+
+      if (steps) {
+        this.scale = adjust(
+          { lightness, chroma, hue, alpha, steps },
+          this.swatch,
+        );
+      }
+
+      this.swatch = adjust({ lightness, chroma, hue, alpha }, this.swatch);
+    }
+
+    mix() {
+      const target = this.target;
+      const strength = parseFloat(this.strength);
+      const steps = parseFloat(this.steps);
+
+      if (steps) {
+        this.scale = mix({ target, strength, steps }, this.swatch);
+      }
+
+      this.swatch = mix({ target, strength }, this.swatch);
     }
   };
 }
 #+END_SRC
 
-*** Definitions
+*** Color
+**** ColorToken
 
-=<x-def>= elements in the DSL are important not just for defining your data but because they are the base rendering
-element of their particular type.
+#+BEGIN_SRC js
+function initColorToken(Element) {
+  return class extends Element {
+    constructor() {
+      super();
 
-Every change performed by an =<x-func>= element will render those changes /as/ a collection of =<x-def>= elements. So
-correctly implementing them is essential to ensuring anything else works.
+      this.swatch = this.swatch;
+      this.format = this.format;
+    }
 
-**** Color (=<color-def>=)
+    set swatch(value) {
+      this.reflect("swatch", value);
+    }
 
-Color definition will define not just the color but also translate the most basic color actions (=convert()=,
-=adjust()=, =mix()=) from the core. So those three will not have equivalents in the DSL.
+    get swatch() {
+      return this.getAttribute("swatch");
+    }
+
+    set format(value) {
+      this.reflect("format", value);
+    }
+
+    get format() {
+      return this.getAttribute("format");
+    }
+  };
+}
+
+const observedColorToken = preset(observed, ["swatch", "format"]);
+const color_token = process(reflected, observedColorToken, initColorToken);
+
+class ColorToken extends color_token(HTMLElement) {
+  constructor() {
+    super();
+
+    this.shadow = this.attachShadow({ mode: "open" });
+  }
+
+  #swatch = "gray";
+  #format = "hex rgb hsl";
+
+  // Formatting
+  formats() {
+    const swatch = this.swatch || this.#swatch;
+    const splitFormats = (this.format || this.#format).split(" ");
+
+    return splitFormats
+      .map((format) => {
+        return `<span class="value ${
+          this.swatch === convert(format, swatch) && "actual"
+        }">${format}: <code>${convert(format, swatch)}</code></span>`;
+      })
+      .join("");
+  }
+
+  template() {
+    const tmpl = document.createElement("template");
+
+    tmpl.innerHTML = `
+${this.styles()}
+<div class="color"></div>
+<div class="data">
+${this.formats()}
+</div>
+`;
+
+    return tmpl.content.cloneNode(true);
+  }
+
+  compatible(swatch) {
+    return convert("hex", swatch || this.#swatch);
+  }
+
+  styles() {
+    return `
+<style>
+:host {
+  display: flex;
+  flex-flow: row wrap;
+  background-color: ${this.compatible(this.swatch)};
+}
+
+:host[hidden] {
+  display: none;
+}
+
+code {
+  font-family: var(--code-family, monospace);
+  text-transform: lowercase;
+}
+
+.color {
+  flex: 1;
+  flex-basis: var(--swatch-basis, 22ch);
+  min-height: var(--swatch-height, 32vh);
+}
+
+.data {
+  --data-padding: 1ex;
+  flex: 1;
+  flex-basis: var(--data-basis, 45ch);
+  display: flex;
+  flex-flow: column wrap;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, var(--data-opacity, 0.7));
+  font-family: var(--data-family, sans-serif);
+  font-size: var(--data-font-size, 1.125rem);
+  padding: var(--data-padding);
+}
+
+.value {
+  padding: var(--value-padding, var(--data-padding));
+  text-transform: uppercase;
+}
+
+.value.actual {
+  font-weight: 700;
+}
+</style>
+`;
+  }
+
+  connectedCallback() {
+    this.shadow.append(this.template());
+  }
+}
+
+customElements.define("color-token", ColorToken);
+#+END_SRC
+
+**** ColorDefn
+
+#+BEGIN_SRC js
+function initColorDefn(Element) {
+  return class extends Element {
+    constructor() {
+      super();
+
+      this.as = this.as;
+      this.from = this.from;
+    }
+  };
+}
+
+const observedColorDefn = preset(observed, ["as", "from", "action"]);
+const observedConversion = preset(observed, ["to"]);
+const observedAdjustment = preset(observed, [
+  "lightness",
+  "chroma",
+  "hue",
+  "alpha",
+]);
+const observedMixture = preset(observed, ["target", "strength"]);
+const observedInterpolation = preset(observed, ["steps"]);
+const color_defn = process(
+  reflected,
+  definitions,
+  observedColorDefn,
+  initColorDefn,
+  observedConversion,
+  observedAdjustment,
+  observedMixture,
+  observedInterpolation,
+  initColorActions,
+  color_actions,
+);
+
+export class ColorDefn extends color_defn(ColorToken) {
+  #as = "";
+  #from = "";
+
+  // Referencing
+  referenced() {
+    const ref = document.querySelector(`[as="${this.from}"]`);
+    this.reference = ref.getAttribute("swatch");
+    this.swatch = this.reference;
+  }
+
+  // Labeling
+  label() {
+    return `
+<span class="as"><span class="ref-swatch ref-as"></span> ${
+      this.as || this.#as
+    }</span>
+${
+      this.from
+        ? `<span class="from"><span class="ref-swatch ref-from"></span> ${this.from}</span>`
+        : ""
+    }
+`;
+  }
+
+  template() {
+    const tmpl = document.createElement("template");
+
+    tmpl.innerHTML = `
+${this.styles()}
+<div class="label">
+${this.label()}
+</div>
+<color-token swatch="${this.swatch}" format=""></color-token>
+`;
+
+    return tmpl.content.cloneNode(true);
+  }
+
+  styles() {
+    return `
+<style>
+:host {
+  display: block;
+  background: ${convert("hex", this.swatch)};
+}
+
+:host[hidden] {
+  display: none;
+}
+
+span {
+  display: block;
+}
+
+.label {
+  --label-font-size: 1.25rem;
+  background-color: rgba(255, 255, 255, var(--label-opacity, 0.9));
+  font-family: var(--label-family, sans-serif);
+  font-size: var(--label-font-size);
+  padding: var(--label-padding, 1.25ex);
+  text-transform: uppercase;
+}
+
+.as, .from {
+  --ref-margin: 1ex;
+  margin: var(--ref-margin) 0;
+}
+
+.ref-swatch {
+  --ref-swatch-size: calc(var(--label-font-size) * 0.8);
+  display: inline-block;
+  border-radius: var(--ref-swatch-size);
+  min-width: var(--ref-swatch-size);
+  min-height: var(--ref-swatch-size);
+}
+
+.ref-as {
+  background: ${convert("hex", this.swatch)};
+}
+
+.ref-from {
+  background: ${convert("hex", this.reference || "gray")};
+}
+</style>
+`;
+  }
+
+  connectedCallback() {
+    // Referencing setup
+    if (this.from) {
+      this.referenced();
+    }
+
+    // Action invocations
+    if (this.action === "convert") {
+      this.convert();
+    }
+
+    if (this.action === "adjust") {
+      this.adjust();
+    }
+
+    if (this.action === "mix") {
+      this.mix();
+    }
+
+    this.shadow.append(this.template());
+  }
+}
+
+customElements.define("color-defn", ColorDefn);
+#+END_SRC
+
+**** ColorCons
+
+#+BEGIN_SRC js
+
+#+END_SRC
+
+**** ColorDict
 
 #+BEGIN_SRC js
 
