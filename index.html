@@ -54,6 +54,19 @@
           lightness="-25"
         ></color-defn>
       </section>
+      <h2>Action: Interpolated Color Adjustment</h2>
+      <section>
+        <color-defn
+          as="adjusted"
+          from="accent"
+          action="adjust"
+          hue="360"
+          lightness="-10"
+          chroma="-10"
+          steps="5"
+          format="hex"
+        ></color-defn>
+      </section>
       <h2>Action: Color Mixture</h2>
       <section>
         <color-defn
@@ -86,15 +99,41 @@
           strength="60"
         ></color-defn>
       </section>
-      <h2>Color Constructions</h2>
-      <color-cons
-        as="main accent highlight spot"
-        swatch="dodgerblue"
-        action="mix"
-        target="magenta"
-        strength="48"
-        steps="3"
-      ></color-cons>
+      <h2>Action: Interpolated Color Mixture</h2>
+      <section>
+        <color-defn
+          as="mixed"
+          from="accent"
+          action="mix"
+          target="red"
+          strength="100"
+          steps="5"
+          format="hex"
+        ></color-defn>
+      </section>
+      <h2>Color Harmony</h2>
+      <section>
+        <color-defn
+          as="scheme"
+          from="brand"
+          action="harmony"
+          configuration="split"
+          accented
+          format="hex"
+        ></color-defn>
+      </section>
+      <h2>Color Scale Referencing</h2>
+      <section>
+        <color-defn as="second" from="scheme" format="rgb"></color-defn>
+        <color-defn as="third" from="scheme" format="rgb"></color-defn>
+      </section>
+      <h2>Color Scale Value Referencing</h2>
+      <section>
+        <color-defn as="targeted" from="scheme.2"></color-defn>
+      </section>
+      <section>
+        <color-defn as="targeted" from="second.1"></color-defn>
+      </section>
     </main>
   </body>
 </html>

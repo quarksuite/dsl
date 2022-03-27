@@ -87,6 +87,10 @@ function initColorActions(Element) {
         this.target = this.target;
         this.strength = this.strength;
       }
+
+      if (this.action === "harmony") {
+        this.configuration = this.configuration;
+      }
     }
 
     // Action accessor
@@ -158,13 +162,29 @@ function initColorActions(Element) {
     }
 
     // Interpolation accessor
-
     set steps(value) {
       this.reflect("steps", value);
     }
 
     get steps() {
       return this.getAttribute("steps");
+    }
+
+    // Color harmony accessors
+    set configuration(value) {
+      this.reflect("configuration", value);
+    }
+
+    get configuration() {
+      return this.getAttribute("configuration");
+    }
+
+    set accented(value) {
+      this.setAttribute("accented", "");
+    }
+
+    get accented() {
+      return this.getAttribute("accented");
     }
   };
 }
@@ -190,6 +210,15 @@ function color_actions(Element) {
         this.steps,
       ].map((prop) => (prop ? parseFloat(prop) : 0));
 
+      // Propagated adjustment
+      if (this.scale && this.scale.length) {
+        this.scale = propagate(
+          preset(adjust, { lightness, chroma, hue, alpha }),
+          this.scale,
+        );
+      }
+
+      // Interpolated adjustment
       if (steps) {
         this.scale = adjust(
           { lightness, chroma, hue, alpha, steps },
@@ -205,11 +234,24 @@ function color_actions(Element) {
       const strength = parseFloat(this.strength);
       const steps = parseFloat(this.steps);
 
+      // Propagated mixture
+      if (this.scale && this.scale.length) {
+        this.scale = propagate(preset(mix, { target, strength }), this.scale);
+      }
+
+      // Interpolated mixture
       if (steps) {
         this.scale = mix({ target, strength, steps }, this.swatch);
       }
 
       this.swatch = mix({ target, strength }, this.swatch);
+    }
+
+    harmony() {
+      const configuration = this.configuration;
+      const accented = this.accented === "" ? true : false;
+
+      this.scale = harmony({ configuration, accented }, this.swatch);
     }
   };
 }
@@ -357,7 +399,13 @@ function initColorDefn(Element) {
   };
 }
 
-const observedColorDefn = preset(observed, ["as", "from", "action"]);
+const observedColorDefn = preset(observed, [
+  "as",
+  "from",
+  "action",
+  "swatch",
+  "format",
+]);
 const observedConversion = preset(observed, ["to"]);
 const observedAdjustment = preset(observed, [
   "lightness",
@@ -367,54 +415,125 @@ const observedAdjustment = preset(observed, [
 ]);
 const observedMixture = preset(observed, ["target", "strength"]);
 const observedInterpolation = preset(observed, ["steps"]);
+const observedHarmony = preset(observed, ["configuration", "accented"]);
 const color_defn = process(
   reflected,
   definitions,
   observedColorDefn,
   initColorDefn,
+  initColorToken,
   observedConversion,
   observedAdjustment,
   observedMixture,
   observedInterpolation,
+  observedHarmony,
   initColorActions,
   color_actions,
 );
 
 export class ColorDefn extends color_defn(ColorToken) {
   #as = "";
-  #from = "";
+  #swatch = "gray";
+  #format = "hex rgb hsl";
 
   // Referencing
   referenced() {
-    const ref = document.querySelector(`[as="${this.from}"]`);
-    this.reference = ref.getAttribute("swatch");
+    const indexedRef = this.from.split(".");
+    let ref = document.querySelector(
+      `${
+        this.from.includes(".")
+          ? `[as^="${indexedRef[0]}"]` // scale index
+          : `[as="${this.from}"]` // scale or value
+      }`,
+    );
+
+    // Scale reference
+    if (ref.scale) {
+      // Index reference
+      if (indexedRef.length > 1) {
+        const [, index] = indexedRef;
+        this.reference = ref.scale[index];
+        console.log(this.reference);
+      } else {
+        this.referenceScale = ref.scale;
+        this.scale = this.referenceScale;
+        this.reference = ref.getAttribute("swatch");
+      }
+    } else {
+      let ref = document.querySelector(`[as="${this.from}"]`);
+      this.reference = ref.getAttribute("swatch");
+    }
+
     this.swatch = this.reference;
   }
 
   // Labeling
   label() {
-    return `
-<span class="as"><span class="ref-swatch ref-as"></span> ${
-      this.as || this.#as
-    }</span>
+    if (this.scale && this.scale.length) {
+      const swatches = (scale) =>
+        scale.map(
+          (color) =>
+            `<span class="ref-swatch scale" style="background-color: ${color};"></span>`,
+        );
+      return `<span class="as"><span class="ref-scale">${
+        swatches(
+          this.scale,
+        ).join("")
+      }</span> ${this.as || this.#as}</span>
 ${
-      this.from
-        ? `<span class="from"><span class="ref-swatch ref-from"></span> ${this.from}</span>`
-        : ""
-    }
+        this.from && this.referenceScale
+          ? `<span class="from"><span class="ref-scale">${
+            swatches(
+              this.referenceScale,
+            ).join("")
+          }</span> ${this.from}</span>`
+          : `<span class="from"><span class="ref-swatch ref-from"></span> ${this.from}</span>`
+      }
 `;
+    } else {
+      return `
+<span class="as"><span class="ref-swatch ref-as"></span> ${
+        this.as || this.#as
+      }</span>
+${
+        this.from
+          ? `<span class="from"><span class="ref-swatch ref-from"></span> ${this.from}</span>`
+          : ""
+      }
+`;
+    }
   }
 
   template() {
     const tmpl = document.createElement("template");
 
-    tmpl.innerHTML = `
+    if (this.scale && this.scale.length) {
+      const swatches = this.scale.map(
+        (swatch) =>
+          `<color-token swatch="${swatch}" format="${
+            this.format || this.#format
+          }"></color-token>`,
+      );
+      tmpl.innerHTML = `
 ${this.styles()}
 <div class="label">
 ${this.label()}
 </div>
-<color-token swatch="${this.swatch}" format=""></color-token>
+<div class="collected">
+${swatches.join("")}
+</div>
 `;
+    } else {
+      tmpl.innerHTML = `
+${this.styles()}
+<div class="label">
+${this.label()}
+</div>
+<color-token swatch="${this.swatch}" format="${
+        this.format || this.#format
+      }"></color-token>
+`;
+    }
 
     return tmpl.content.cloneNode(true);
   }
@@ -424,7 +543,7 @@ ${this.label()}
 <style>
 :host {
   display: block;
-  background: ${convert("hex", this.swatch)};
+  background: ${convert("hex", this.scale ? this.scale[0] : this.swatch)};
 }
 
 :host[hidden] {
@@ -433,6 +552,20 @@ ${this.label()}
 
 span {
   display: block;
+}
+
+.collected, .label, .ref-index {
+  background-color: rgba(255, 255, 255, var(--collection-opacity, 0.9));
+}
+
+.collected {
+  display: flex;
+  flex-flow: row wrap;
+}
+
+color-token {
+  flex: 1;
+  flex-basis: var(--color-scale-basis, 24ch);
 }
 
 .label {
@@ -444,7 +577,7 @@ span {
   text-transform: uppercase;
 }
 
-.as, .from {
+.as, .from, .ref-scale {
   --ref-margin: 1ex;
   margin: var(--ref-margin) 0;
 }
@@ -455,6 +588,26 @@ span {
   border-radius: var(--ref-swatch-size);
   min-width: var(--ref-swatch-size);
   min-height: var(--ref-swatch-size);
+}
+
+.ref-scale {
+  display: inline-flex;
+  flex-flow: row wrap;
+  gap: 0.5ex;
+}
+
+.ref-swatch.scale {
+  --ref-swatch-scale-size: calc(var(--ref-swatch-size) * 1.2);
+  --ref-swatch-scale-padding: 0.35ex;
+  --ref-swatch-scale-basis: 1ch;
+  flex-basis: var(--ref-swatch-scale-basis);
+  text-align: center;
+}
+
+.ref-index {
+  border-radius: var(--ref-swatch-scale-size);
+  font-size: var(--ref-swatch-size);
+  padding: var(--ref-swatch-scale-padding);
 }
 
 .ref-as {
@@ -487,16 +640,16 @@ span {
       this.mix();
     }
 
+    if (this.action === "harmony") {
+      this.harmony();
+    }
+
     this.shadow.append(this.template());
   }
 }
 
 customElements.define("color-defn", ColorDefn);
 // ColorDefn:1 ends here
-
-// [[file:Notebook.org::*ColorCons][ColorCons:1]]
-
-// ColorCons:1 ends here
 
 // [[file:Notebook.org::*ColorDict][ColorDict:1]]
 
