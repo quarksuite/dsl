@@ -453,7 +453,6 @@ export class ColorDefn extends color_defn(ColorToken) {
       if (indexedRef.length > 1) {
         const [, index] = indexedRef;
         this.reference = ref.scale[index];
-        console.log(this.reference);
       } else {
         this.referenceScale = ref.scale;
         this.scale = this.referenceScale;
@@ -650,6 +649,229 @@ color-token {
 
 customElements.define("color-defn", ColorDefn);
 // ColorDefn:1 ends here
+
+// [[file:Notebook.org::*ColorVision][ColorVision:1]]
+const observedVision = preset(observed, ["as", "type", "severity"]);
+
+export class ColorVision extends observedVision(ColorDefn) {
+  constructor() {
+    super();
+
+    this.type = this.type;
+    this.severity = this.severity;
+  }
+
+  #severity = 0;
+
+  set type(value) {
+    this.reflect("type", value);
+  }
+
+  get type() {
+    return this.getAttribute("type");
+  }
+
+  set severity(value) {
+    this.reflect("severity", value);
+  }
+
+  get severity() {
+    return this.getAttribute("severity");
+  }
+
+  referenced() {
+    super.referenced();
+  }
+
+  vision() {
+    const as = this.type;
+    const severity = parseFloat(this.severity || this.#severity);
+    const steps = parseFloat(this.steps);
+
+    // Propagated vision check
+    if (this.scale && this.scale.length) {
+      this.scale = propagate(preset(vision, { as, severity }), this.scale);
+    }
+
+    // Interpolated vision check
+    if (steps) {
+      this.scale = vision({ as, severity, steps }, this.swatch);
+    }
+
+    // Set name as vision type
+    if (this.from) {
+      this.as = `${this.from} (${severity ? `${as}: ${severity}` : as})`;
+    } else {
+      this.as = as;
+    }
+
+    this.swatch = vision({ as, severity }, this.swatch);
+  }
+
+  connectedCallback() {
+    if (this.from) {
+      this.referenced();
+    }
+
+    // Activate vision check
+    this.vision();
+
+    this.shadow.append(this.template());
+  }
+}
+
+customElements.define("color-vision", ColorVision);
+// ColorVision:1 ends here
+
+// [[file:Notebook.org::*ColorContrast][ColorContrast:1]]
+const observedContrast = preset(observed, ["as", "factor", "severity"]);
+
+export class ColorContrast extends observedContrast(ColorDefn) {
+  constructor() {
+    super();
+
+    this.factor = this.factor;
+    this.severity = this.severity;
+  }
+
+  #severity = 0;
+
+  set factor(value) {
+    this.reflect("factor", value);
+  }
+
+  get factor() {
+    return this.getAttribute("factor");
+  }
+
+  set severity(value) {
+    this.reflect("severity", value);
+  }
+
+  get severity() {
+    return this.getAttribute("severity");
+  }
+
+  referenced() {
+    super.referenced();
+  }
+
+  contrast() {
+    const factor = parseFloat(this.factor);
+    const severity = parseFloat(this.severity || this.#severity);
+    const steps = parseFloat(this.steps);
+
+    // Propagated contrast check
+    if (this.scale && this.scale.length) {
+      this.scale = propagate(
+        preset(contrast, { factor, severity }),
+        this.scale,
+      );
+    }
+
+    // Interpolated contrast check
+    if (steps) {
+      this.scale = contrast({ factor, severity, steps }, this.swatch);
+    }
+
+    // Set name as contrast factor
+    if (this.from) {
+      this.as = `${this.from} (contrast: ${factor}% severity: ${severity}%)`;
+    } else {
+      this.as = `contrast: ${factor}% severity: ${severity}%`;
+    }
+
+    this.swatch = contrast({ factor, severity }, this.swatch);
+  }
+
+  connectedCallback() {
+    if (this.from) {
+      this.referenced();
+    }
+
+    // Activate contrast check
+    this.contrast();
+
+    this.shadow.append(this.template());
+  }
+}
+
+customElements.define("color-contrast", ColorContrast);
+// ColorContrast:1 ends here
+
+// [[file:Notebook.org::*ColorIlluminant][ColorIlluminant:1]]
+const observedIlluminant = preset(observed, ["as", "temperature", "intensity"]);
+
+export class ColorIlluminant extends observedIlluminant(ColorDefn) {
+  constructor() {
+    super();
+
+    this.temperature = this.temperature;
+    this.intensity = this.intensity;
+  }
+
+  #temperature = 1850;
+  #intensity = 0;
+
+  set temperature(value) {
+    this.reflect("temperature", value);
+  }
+
+  get temperature() {
+    return this.getAttribute("temperature");
+  }
+
+  set intensity(value) {
+    this.reflect("intensity", value);
+  }
+
+  get intensity() {
+    return this.getAttribute("intensity");
+  }
+
+  referenced() {
+    super.referenced();
+  }
+
+  illuminant() {
+    const K = parseFloat(this.temperature || this.#temperature);
+    const intensity = parseFloat(this.intensity || this.#intensity);
+    const steps = parseFloat(this.steps);
+
+    // Propagated illuminant check
+    if (this.scale && this.scale.length) {
+      this.scale = propagate(preset(illuminant, { K, intensity }), this.scale);
+    }
+
+    // Interpolated illuminant check
+    if (steps) {
+      this.scale = illuminant({ K, intensity, steps }, this.swatch);
+    }
+
+    // Set name as illuminant temperature
+    if (this.from) {
+      this.as = `${this.from} (${K}k - ${intensity}%)`;
+    } else {
+      this.as = "${K}k - ${intensity}%";
+    }
+
+    this.swatch = illuminant({ K, intensity }, this.swatch);
+  }
+
+  connectedCallback() {
+    if (this.from) {
+      this.referenced();
+    }
+
+    // Activate illuminant check
+    this.illuminant();
+
+    this.shadow.append(this.template());
+  }
+}
+
+customElements.define("color-illuminant", ColorIlluminant);
+// ColorIlluminant:1 ends here
 
 // [[file:Notebook.org::*ColorDict][ColorDict:1]]
 

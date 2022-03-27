@@ -18,8 +18,18 @@ section {
   gap: 1ex;
 }
 
+h2,
+h3,
+h4,
+h5 {
+  flex-basis: 100%;
+}
+
 color-token,
-color-defn {
+color-defn,
+color-vision,
+color-contrast,
+color-illuminant {
   flex: 1;
   flex-basis: 45ch;
 }

@@ -19,120 +19,77 @@
       <h1>QuarkSuite v2 DSL Workspace</h1>
     </header>
     <main>
-      <h2>Base Color Token</h2>
       <section>
-        <color-token></color-token>
-        <color-token swatch="dodgerblue"></color-token>
-      </section>
-      <h2>Color Definitions</h2>
-      <section>
+        <h2>Base Color</h2>
         <color-defn
-          as="brand"
-          swatch="#7ea"
+          as="base"
+          swatch="#bada55"
           action="convert"
           to="rgb"
         ></color-defn>
-        <color-defn as="sample" swatch="#ea7"></color-defn>
-      </section>
-      <h2>Color Referencing</h2>
-      <section>
-        <color-defn as="a" from="brand"></color-defn>
-        <color-defn as="b" from="sample"></color-defn>
-      </section>
-      <h2>Action: Color Adjustment</h2>
-      <section>
         <color-defn
-          as="accent"
-          from="brand"
+          as="@base"
+          from="base"
           action="adjust"
-          hue="128"
-        ></color-defn>
-        <color-defn
-          as="highlight"
-          from="accent"
-          action="adjust"
-          lightness="-25"
-        ></color-defn>
-      </section>
-      <h2>Action: Interpolated Color Adjustment</h2>
-      <section>
-        <color-defn
-          as="adjusted"
-          from="accent"
-          action="adjust"
-          hue="360"
-          lightness="-10"
           chroma="-10"
-          steps="5"
-          format="hex"
+        ></color-defn>
+        <color-defn
+          as="brand"
+          from="@base"
+          action="mix"
+          target="dodgerblue"
+          strength="40"
         ></color-defn>
       </section>
-      <h2>Action: Color Mixture</h2>
       <section>
-        <color-defn
-          as="c"
-          from="highlight"
-          action="adjust"
-          lightness="-20"
-          chroma="25"
-          hue="60"
-        ></color-defn>
-        <color-defn
-          as="links"
-          from="c"
-          action="mix"
-          target="chartreuse"
-          strength="75"
-        ></color-defn>
-        <color-defn
-          as="links-hover"
-          from="links"
-          action="mix"
-          target="white"
-          strength="30"
-        ></color-defn>
-        <color-defn
-          as="links-visited"
-          from="links"
-          action="mix"
-          target="gray"
-          strength="60"
-        ></color-defn>
-      </section>
-      <h2>Action: Interpolated Color Mixture</h2>
-      <section>
-        <color-defn
-          as="mixed"
-          from="accent"
-          action="mix"
-          target="red"
-          strength="100"
-          steps="5"
-          format="hex"
-        ></color-defn>
-      </section>
-      <h2>Color Harmony</h2>
-      <section>
+        <h2>Harmony</h2>
         <color-defn
           as="scheme"
           from="brand"
           action="harmony"
-          configuration="split"
-          accented
-          format="hex"
+          configuration="triadic"
         ></color-defn>
       </section>
-      <h2>Color Scale Referencing</h2>
       <section>
-        <color-defn as="second" from="scheme" format="rgb"></color-defn>
-        <color-defn as="third" from="scheme" format="rgb"></color-defn>
+        <h2>Vision: Achromatopsia</h2>
+        <color-vision
+          from="scheme"
+          type="achromatopsia"
+          format="hex"
+        ></color-vision>
+        <h2>Vision: Protanopia</h2>
+        <color-vision from="scheme" type="protanopia"></color-vision>
+        <h2>Vision: Deuteranopia</h2>
+        <color-vision from="scheme" type="deuteranopia"></color-vision>
+        <h2>Vision: Tritanopia</h2>
+        <color-vision from="scheme" type="tritanopia"></color-vision>
       </section>
-      <h2>Color Scale Value Referencing</h2>
       <section>
-        <color-defn as="targeted" from="scheme.2"></color-defn>
+        <h2>Adjusted Harmony</h2>
+        <color-defn as="main" from="scheme.0"></color-defn>
+        <color-defn
+          as="accent"
+          from="scheme.1"
+          action="adjust"
+          lightness="-10"
+          chroma="20"
+        ></color-defn>
+        <color-defn
+          as="highlight"
+          from="scheme.2"
+          action="adjust"
+          lightness="10"
+          chroma="20"
+        ></color-defn>
       </section>
       <section>
-        <color-defn as="targeted" from="second.1"></color-defn>
+        <color-vision
+          from="main"
+          type="achromatopsia"
+          scale="red"
+        ></color-vision>
+        <color-vision from="accent" type="achromatopsia"></color-vision>
+        <color-vision from="highlight" type="achromatopsia"></color-vision>
       </section>
     </main>
   </body>

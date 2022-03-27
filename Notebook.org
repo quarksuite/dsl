@@ -10,9 +10,16 @@
     - [[#core-v2-setup][Core v2 Setup]]
     - [[#mixins][Mixins]]
     - [[#color][Color]]
-      - [[#colortoken][ColorToken]]
-      - [[#colordefn][ColorDefn]]
-      - [[#colordict][ColorDict]]
+      - [[#data][Data]]
+        - [[#colortoken][ColorToken]]
+      - [[#definition][Definition]]
+        - [[#colordefn][ColorDefn]]
+      - [[#functions][Functions]]
+        - [[#colorvision][ColorVision]]
+        - [[#colorcontrast][ColorContrast]]
+        - [[#colorilluminant][ColorIlluminant]]
+      - [[#output][Output]]
+        - [[#colordict][ColorDict]]
 
 * Summary
 
@@ -111,120 +118,77 @@ Before anything, let's set up a little HTML workspace so we can build and debug.
       <h1>QuarkSuite v2 DSL Workspace</h1>
     </header>
     <main>
-      <h2>Base Color Token</h2>
       <section>
-        <color-token></color-token>
-        <color-token swatch="dodgerblue"></color-token>
-      </section>
-      <h2>Color Definitions</h2>
-      <section>
+        <h2>Base Color</h2>
         <color-defn
-          as="brand"
-          swatch="#7ea"
+          as="base"
+          swatch="#bada55"
           action="convert"
           to="rgb"
         ></color-defn>
-        <color-defn as="sample" swatch="#ea7"></color-defn>
-      </section>
-      <h2>Color Referencing</h2>
-      <section>
-        <color-defn as="a" from="brand"></color-defn>
-        <color-defn as="b" from="sample"></color-defn>
-      </section>
-      <h2>Action: Color Adjustment</h2>
-      <section>
         <color-defn
-          as="accent"
-          from="brand"
+          as="@base"
+          from="base"
           action="adjust"
-          hue="128"
-        ></color-defn>
-        <color-defn
-          as="highlight"
-          from="accent"
-          action="adjust"
-          lightness="-25"
-        ></color-defn>
-      </section>
-      <h2>Action: Interpolated Color Adjustment</h2>
-      <section>
-        <color-defn
-          as="adjusted"
-          from="accent"
-          action="adjust"
-          hue="360"
-          lightness="-10"
           chroma="-10"
-          steps="5"
-          format="hex"
+        ></color-defn>
+        <color-defn
+          as="brand"
+          from="@base"
+          action="mix"
+          target="dodgerblue"
+          strength="40"
         ></color-defn>
       </section>
-      <h2>Action: Color Mixture</h2>
       <section>
-        <color-defn
-          as="c"
-          from="highlight"
-          action="adjust"
-          lightness="-20"
-          chroma="25"
-          hue="60"
-        ></color-defn>
-        <color-defn
-          as="links"
-          from="c"
-          action="mix"
-          target="chartreuse"
-          strength="75"
-        ></color-defn>
-        <color-defn
-          as="links-hover"
-          from="links"
-          action="mix"
-          target="white"
-          strength="30"
-        ></color-defn>
-        <color-defn
-          as="links-visited"
-          from="links"
-          action="mix"
-          target="gray"
-          strength="60"
-        ></color-defn>
-      </section>
-      <h2>Action: Interpolated Color Mixture</h2>
-      <section>
-        <color-defn
-          as="mixed"
-          from="accent"
-          action="mix"
-          target="red"
-          strength="100"
-          steps="5"
-          format="hex"
-        ></color-defn>
-      </section>
-      <h2>Color Harmony</h2>
-      <section>
+        <h2>Harmony</h2>
         <color-defn
           as="scheme"
           from="brand"
           action="harmony"
-          configuration="split"
-          accented
-          format="hex"
+          configuration="triadic"
         ></color-defn>
       </section>
-      <h2>Color Scale Referencing</h2>
       <section>
-        <color-defn as="second" from="scheme" format="rgb"></color-defn>
-        <color-defn as="third" from="scheme" format="rgb"></color-defn>
+        <h2>Vision: Achromatopsia</h2>
+        <color-vision
+          from="scheme"
+          type="achromatopsia"
+          format="hex"
+        ></color-vision>
+        <h2>Vision: Protanopia</h2>
+        <color-vision from="scheme" type="protanopia"></color-vision>
+        <h2>Vision: Deuteranopia</h2>
+        <color-vision from="scheme" type="deuteranopia"></color-vision>
+        <h2>Vision: Tritanopia</h2>
+        <color-vision from="scheme" type="tritanopia"></color-vision>
       </section>
-      <h2>Color Scale Value Referencing</h2>
       <section>
-        <color-defn as="targeted" from="scheme.2"></color-defn>
+        <h2>Adjusted Harmony</h2>
+        <color-defn as="main" from="scheme.0"></color-defn>
+        <color-defn
+          as="accent"
+          from="scheme.1"
+          action="adjust"
+          lightness="-10"
+          chroma="20"
+        ></color-defn>
+        <color-defn
+          as="highlight"
+          from="scheme.2"
+          action="adjust"
+          lightness="10"
+          chroma="20"
+        ></color-defn>
       </section>
       <section>
-        <color-defn as="targeted" from="second.1"></color-defn>
+        <color-vision
+          from="main"
+          type="achromatopsia"
+          scale="red"
+        ></color-vision>
+        <color-vision from="accent" type="achromatopsia"></color-vision>
+        <color-vision from="highlight" type="achromatopsia"></color-vision>
       </section>
     </main>
   </body>
@@ -253,8 +217,18 @@ section {
   gap: 1ex;
 }
 
+h2,
+h3,
+h4,
+h5 {
+  flex-basis: 100%;
+}
+
 color-token,
-color-defn {
+color-defn,
+color-vision,
+color-contrast,
+color-illuminant {
   flex: 1;
   flex-basis: 45ch;
 }
@@ -536,7 +510,8 @@ function color_actions(Element) {
 #+END_SRC
 
 *** Color
-**** ColorToken
+**** Data
+***** ColorToken
 
 #+BEGIN_SRC js
 function initColorToken(Element) {
@@ -668,7 +643,8 @@ code {
 customElements.define("color-token", ColorToken);
 #+END_SRC
 
-**** ColorDefn
+**** Definition
+***** ColorDefn
 
 #+BEGIN_SRC js
 function initColorDefn(Element) {
@@ -736,7 +712,6 @@ export class ColorDefn extends color_defn(ColorToken) {
       if (indexedRef.length > 1) {
         const [, index] = indexedRef;
         this.reference = ref.scale[index];
-        console.log(this.reference);
       } else {
         this.referenceScale = ref.scale;
         this.scale = this.referenceScale;
@@ -934,7 +909,247 @@ color-token {
 customElements.define("color-defn", ColorDefn);
 #+END_SRC
 
-**** ColorDict
+**** Functions
+
+Color functions derive directly from =<color-defn>= values and scales. Their
+purpose is to transform the data in some meaningful way without creating a /new/
+definition.
+
+The currently available functions are translated from Core v2's color perception
+checkers (=vision()=, =contrast()=, =illuminant()=).
+
+***** ColorVision
+
+#+BEGIN_SRC js
+const observedVision = preset(observed, ["as", "type", "severity"]);
+
+export class ColorVision extends observedVision(ColorDefn) {
+  constructor() {
+    super();
+
+    this.type = this.type;
+    this.severity = this.severity;
+  }
+
+  #severity = 0;
+
+  set type(value) {
+    this.reflect("type", value);
+  }
+
+  get type() {
+    return this.getAttribute("type");
+  }
+
+  set severity(value) {
+    this.reflect("severity", value);
+  }
+
+  get severity() {
+    return this.getAttribute("severity");
+  }
+
+  referenced() {
+    super.referenced();
+  }
+
+  vision() {
+    const as = this.type;
+    const severity = parseFloat(this.severity || this.#severity);
+    const steps = parseFloat(this.steps);
+
+    // Propagated vision check
+    if (this.scale && this.scale.length) {
+      this.scale = propagate(preset(vision, { as, severity }), this.scale);
+    }
+
+    // Interpolated vision check
+    if (steps) {
+      this.scale = vision({ as, severity, steps }, this.swatch);
+    }
+
+    // Set name as vision type
+    if (this.from) {
+      this.as = `${this.from} (${severity ? `${as}: ${severity}` : as})`;
+    } else {
+      this.as = as;
+    }
+
+    this.swatch = vision({ as, severity }, this.swatch);
+  }
+
+  connectedCallback() {
+    if (this.from) {
+      this.referenced();
+    }
+
+    // Activate vision check
+    this.vision();
+
+    this.shadow.append(this.template());
+  }
+}
+
+customElements.define("color-vision", ColorVision);
+#+END_SRC
+
+***** ColorContrast
+
+#+BEGIN_SRC js
+const observedContrast = preset(observed, ["as", "factor", "severity"]);
+
+export class ColorContrast extends observedContrast(ColorDefn) {
+  constructor() {
+    super();
+
+    this.factor = this.factor;
+    this.severity = this.severity;
+  }
+
+  #severity = 0;
+
+  set factor(value) {
+    this.reflect("factor", value);
+  }
+
+  get factor() {
+    return this.getAttribute("factor");
+  }
+
+  set severity(value) {
+    this.reflect("severity", value);
+  }
+
+  get severity() {
+    return this.getAttribute("severity");
+  }
+
+  referenced() {
+    super.referenced();
+  }
+
+  contrast() {
+    const factor = parseFloat(this.factor);
+    const severity = parseFloat(this.severity || this.#severity);
+    const steps = parseFloat(this.steps);
+
+    // Propagated contrast check
+    if (this.scale && this.scale.length) {
+      this.scale = propagate(
+        preset(contrast, { factor, severity }),
+        this.scale,
+      );
+    }
+
+    // Interpolated contrast check
+    if (steps) {
+      this.scale = contrast({ factor, severity, steps }, this.swatch);
+    }
+
+    // Set name as contrast factor
+    if (this.from) {
+      this.as = `${this.from} (contrast: ${factor}% severity: ${severity}%)`;
+    } else {
+      this.as = `contrast: ${factor}% severity: ${severity}%`;
+    }
+
+    this.swatch = contrast({ factor, severity }, this.swatch);
+  }
+
+  connectedCallback() {
+    if (this.from) {
+      this.referenced();
+    }
+
+    // Activate contrast check
+    this.contrast();
+
+    this.shadow.append(this.template());
+  }
+}
+
+customElements.define("color-contrast", ColorContrast);
+#+END_SRC
+
+***** ColorIlluminant
+
+#+BEGIN_SRC js
+const observedIlluminant = preset(observed, ["as", "temperature", "intensity"]);
+
+export class ColorIlluminant extends observedIlluminant(ColorDefn) {
+  constructor() {
+    super();
+
+    this.temperature = this.temperature;
+    this.intensity = this.intensity;
+  }
+
+  #temperature = 1850;
+  #intensity = 0;
+
+  set temperature(value) {
+    this.reflect("temperature", value);
+  }
+
+  get temperature() {
+    return this.getAttribute("temperature");
+  }
+
+  set intensity(value) {
+    this.reflect("intensity", value);
+  }
+
+  get intensity() {
+    return this.getAttribute("intensity");
+  }
+
+  referenced() {
+    super.referenced();
+  }
+
+  illuminant() {
+    const K = parseFloat(this.temperature || this.#temperature);
+    const intensity = parseFloat(this.intensity || this.#intensity);
+    const steps = parseFloat(this.steps);
+
+    // Propagated illuminant check
+    if (this.scale && this.scale.length) {
+      this.scale = propagate(preset(illuminant, { K, intensity }), this.scale);
+    }
+
+    // Interpolated illuminant check
+    if (steps) {
+      this.scale = illuminant({ K, intensity, steps }, this.swatch);
+    }
+
+    // Set name as illuminant temperature
+    if (this.from) {
+      this.as = `${this.from} (${K}k - ${intensity}%)`;
+    } else {
+      this.as = "${K}k - ${intensity}%";
+    }
+
+    this.swatch = illuminant({ K, intensity }, this.swatch);
+  }
+
+  connectedCallback() {
+    if (this.from) {
+      this.referenced();
+    }
+
+    // Activate illuminant check
+    this.illuminant();
+
+    this.shadow.append(this.template());
+  }
+}
+
+customElements.define("color-illuminant", ColorIlluminant);
+#+END_SRC
+
+
+**** Output
+***** ColorDict
 
 #+BEGIN_SRC js
 
