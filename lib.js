@@ -58,6 +58,14 @@ function definitions(Element) {
     get from() {
       return this.getAttribute("from");
     }
+
+    set collected(value) {
+      this.reflect("collected", value);
+    }
+
+    get collected() {
+      return this.getAttribute("collected");
+    }
   };
 }
 
@@ -214,7 +222,7 @@ function color_actions(Element) {
       if (this.scale && this.scale.length) {
         this.scale = propagate(
           preset(adjust, { lightness, chroma, hue, alpha }),
-          this.scale,
+          this.scale
         );
       }
 
@@ -222,7 +230,7 @@ function color_actions(Element) {
       if (steps) {
         this.scale = adjust(
           { lightness, chroma, hue, alpha, steps },
-          this.swatch,
+          this.swatch
         );
       }
 
@@ -395,6 +403,8 @@ function initColorDefn(Element) {
 
       this.as = this.as;
       this.from = this.from;
+
+      this.collected = this.collected;
     }
   };
 }
@@ -404,6 +414,7 @@ const observedColorDefn = preset(observed, [
   "from",
   "action",
   "swatch",
+  "collected",
   "format",
 ]);
 const observedConversion = preset(observed, ["to"]);
@@ -428,37 +439,58 @@ const color_defn = process(
   observedInterpolation,
   observedHarmony,
   initColorActions,
-  color_actions,
+  color_actions
 );
 
 export class ColorDefn extends color_defn(ColorToken) {
   #as = "";
-  #swatch = "gray";
-  #format = "hex rgb hsl";
+#format = "hex rgb hsl";
 
   // Referencing
   referenced() {
+    const collected = this.from.split(" ");
     const indexedRef = this.from.split(".");
     let ref = document.querySelector(
       `${
         this.from.includes(".")
           ? `[as^="${indexedRef[0]}"]` // scale index
           : `[as="${this.from}"]` // scale or value
-      }`,
+      }`
     );
 
-    // Scale reference
-    if (ref.scale) {
-      // Index reference
+    if (collected.length > 1) {
+      // Destrcutured reference
+      this.referenceScale = collected.map((ref) => {
+        const indexed = ref.split(".");
+        const [, index] = indexed;
+
+        // Indexed destructured reference
+        if (index) {
+          return document.querySelector(`[as^="${indexed[0]}"]`).scale[index];
+        }
+
+        // Value destructured reference
+        return document.querySelector(`[as="${ref}"]`).getAttribute("swatch");
+      });
+
+      this.scale = this.referenceScale;
+      this.reference = this.scale[0];
+    } else if (ref.scale && ref.scale.length) {
+      // Indexed scale reference
+
       if (indexedRef.length > 1) {
         const [, index] = indexedRef;
         this.reference = ref.scale[index];
       } else {
+        // Full scale reference
+
         this.referenceScale = ref.scale;
         this.scale = this.referenceScale;
         this.reference = ref.getAttribute("swatch");
       }
     } else {
+      // Value reference
+
       let ref = document.querySelector(`[as="${this.from}"]`);
       this.reference = ref.getAttribute("swatch");
     }
@@ -472,22 +504,18 @@ export class ColorDefn extends color_defn(ColorToken) {
       const swatches = (scale) =>
         scale.map(
           (color) =>
-            `<span class="ref-swatch scale" style="background-color: ${color};"></span>`,
+          `<span class="ref-swatch scale" style="background-color: ${color};"></span>`
         );
-      return `<span class="as"><span class="ref-scale">${
-        swatches(
-          this.scale,
-        ).join("")
-      }</span> ${this.as || this.#as}</span>
+      return `<span class="as"><span class="ref-scale">${swatches(
+        this.scale
+      ).join("")}</span> ${this.as || this.#as}</span>
 ${
-        this.from && this.referenceScale
-          ? `<span class="from"><span class="ref-scale">${
-            swatches(
-              this.referenceScale,
-            ).join("")
-          }</span> ${this.from}</span>`
-          : `<span class="from"><span class="ref-swatch ref-from"></span> ${this.from}</span>`
-      }
+  this.from && this.referenceScale
+    ? `<span class="from"><span class="ref-scale">${swatches(
+        this.referenceScale
+    ).join("")}</span> ${this.from}</span>`
+    : `<span class="from"><span class="ref-swatch ref-from"></span> ${this.from}</span>`
+}
 `;
     } else {
       return `
@@ -495,10 +523,10 @@ ${
         this.as || this.#as
       }</span>
 ${
-        this.from
-          ? `<span class="from"><span class="ref-swatch ref-from"></span> ${this.from}</span>`
-          : ""
-      }
+  this.from
+    ? `<span class="from"><span class="ref-swatch ref-from"></span> ${this.from}</span>`
+    : ""
+}
 `;
     }
   }
@@ -511,7 +539,7 @@ ${
         (swatch) =>
           `<color-token swatch="${swatch}" format="${
             this.format || this.#format
-          }"></color-token>`,
+          }"></color-token>`
       );
       tmpl.innerHTML = `
 ${this.styles()}
@@ -765,7 +793,7 @@ export class ColorContrast extends observedContrast(ColorDefn) {
     if (this.scale && this.scale.length) {
       this.scale = propagate(
         preset(contrast, { factor, severity }),
-        this.scale,
+        this.scale
       );
     }
 

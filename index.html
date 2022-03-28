@@ -66,30 +66,32 @@
       </section>
       <section>
         <h2>Adjusted Harmony</h2>
-        <color-defn as="main" from="scheme.0"></color-defn>
-        <color-defn
-          as="accent"
-          from="scheme.1"
-          action="adjust"
-          lightness="-10"
-          chroma="20"
-        ></color-defn>
-        <color-defn
-          as="highlight"
-          from="scheme.2"
-          action="adjust"
-          lightness="10"
-          chroma="20"
-        ></color-defn>
+        <section>
+          <color-defn as="main" from="scheme.0"></color-defn>
+          <color-defn
+            as="accent"
+            from="scheme.1"
+            action="adjust"
+            lightness="-10"
+            chroma="20"
+          ></color-defn>
+          <color-defn
+            as="highlight"
+            from="scheme.2"
+            action="adjust"
+            lightness="10"
+            chroma="20"
+          ></color-defn>
+        </section>
+        <section>
+          <color-defn
+            as="final-scheme"
+            from="main accent highlight"
+            ></color-defn>
+        </section>
       </section>
       <section>
-        <color-vision
-          from="main"
-          type="achromatopsia"
-          scale="red"
-        ></color-vision>
-        <color-vision from="accent" type="achromatopsia"></color-vision>
-        <color-vision from="highlight" type="achromatopsia"></color-vision>
+        <color-vision from="final-scheme" type="achromatopsia"></color-vision>
       </section>
     </main>
   </body>
