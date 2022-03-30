@@ -3,6 +3,7 @@
 * Table of Contents :TOC@5:
 - [[#summary][Summary]]
 - [[#api][API]]
+  - [[#entry-point][Entry Point]]
   - [[#elements][Elements]]
     - [[#color][Color]]
       - [[#color-element-setup][Color Element Setup]]
@@ -21,6 +22,7 @@
     - [[#dsl-setup][DSL Setup]]
       - [[#workspace][Workspace]]
     - [[#color-1][Color]]
+      - [[#color-setup][Color Setup]]
       - [[#mixins][Mixins]]
       - [[#data][Data]]
         - [[#colortoken][ColorToken]]
@@ -50,6 +52,16 @@ because they're interoperable and /must/ speak the same data language as each ot
 If you want to see the work I'm doing on QuarkSuite Core v2, you can [[https://github.com/quarksuite/core/tree/v2-workspace][check out its progress at its own repo]].
 
 * API
+
+** Entry Point
+
+If you want to pull the whole DSL in, you can use the =mod.js= entry
+point. Otherwise, import your desired modules directly.
+
+#+BEGIN_SRC js :tangle "./mod.js" :comments link
+import "./color.js";
+#+END_SRC
+
 ** Elements
 
 The elements listed below have at the least reached proof of concept status. This means they are usable, but expect bugs
@@ -70,24 +82,27 @@ hopefully I've provided enough information for the bold and curious to go on.
 
 #+BEGIN_SRC js
 import {
-  delegate,
-  pipeline,
-  preset,
-  process,
-  propagate,
-} from "https://x.nest.land/quarksuite:core@2.0.0-11/v2/fn.js";
-import {
-  accessibility,
-  adjust,
-  contrast,
-  convert,
-  harmony,
-  illuminant,
-  mix,
-  palette,
-  tokens,
-  vision,
-} from "https://x.nest.land/quarksuite:core@2.0.0-11/v2/color.js";
+  ColorContrast,
+  ColorDefn,
+  ColorDict,
+  ColorIlluminant,
+  ColorToken,
+  ColorVision,
+  PaletteToken,
+} from "./lib/color.js";
+
+customElements.define("color-token", ColorToken);
+customElements.define("palette-token", PaletteToken);
+
+// Export components for custom naming
+
+// Add init function to invoke internals when setting custom names
+export function init() {
+  customElements.define("color-token", ColorToken);
+  customElements.define("palette-token", PaletteToken);
+}
+
+export { ColorContrast, ColorDefn, ColorDict, ColorIlluminant, ColorVision };
 #+END_SRC
 
 **** =<color-defn>=
@@ -336,6 +351,7 @@ color-token {
 :header-args:js: :tangle "./lib/color.js" :mkdirp yes :comments link
 :END:
 
+**** Color Setup
 
 Since we're developing a translation layer, we'll need to pull in the Core v2 module so we have access to everything
 we're converting.

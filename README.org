@@ -1,0 +1,19 @@
+#+TITLE: QuarkSuite DSL (WIP)
+
+* Table of Contents :TOC@5:
+- [[#summary][Summary]]
+- [[#features][Features]]
+
+* Summary
+
+This repo contains the prototype of a domain-specific language for QuarkSuite Core v2. Its intention is to act as a
+translation/transmission layer for Core v2 functionality using web components. Both are works in progress built in
+tandem with each other to ensure that they speak the same data language.
+
+If you want to follow the progress of Core v2, [[https://github.com/quarksuite/core/blob/v2-workspace/Notebook.org][jump over to its repo]].
+
+* Features
+
++ translates essential core functionality through a declarative workflow as web components
++ transmits its data for the core itself to use and send back
++ renders tokens for rapid development and live documentation
