@@ -5,7 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>QuarkSuite v2 DSL Workspace</title>
-    <script type="module" src="/lib.js"></script>
+    <script type="module" src="/color.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -51,20 +51,6 @@
         ></color-defn>
       </section>
       <section>
-        <h2>Vision: Achromatopsia</h2>
-        <color-vision
-          from="scheme"
-          type="achromatopsia"
-          format="hex"
-        ></color-vision>
-        <h2>Vision: Protanopia</h2>
-        <color-vision from="scheme" type="protanopia"></color-vision>
-        <h2>Vision: Deuteranopia</h2>
-        <color-vision from="scheme" type="deuteranopia"></color-vision>
-        <h2>Vision: Tritanopia</h2>
-        <color-vision from="scheme" type="tritanopia"></color-vision>
-      </section>
-      <section>
         <h2>Adjusted Harmony</h2>
         <section>
           <color-defn as="main" from="scheme.0"></color-defn>
@@ -87,11 +73,22 @@
           <color-defn
             as="final-scheme"
             from="main accent highlight"
-            ></color-defn>
+          ></color-defn>
         </section>
       </section>
+      <h2>Palette Generation</h2>
       <section>
-        <color-vision from="final-scheme" type="achromatopsia"></color-vision>
+        <color-dict
+          as="ui"
+          from="main"
+          configuration="artistic"
+          contrast="100"
+          stated
+          action="a11y"
+          rating="AA"
+          large
+          dark
+        ></color-dict>
       </section>
     </main>
   </body>

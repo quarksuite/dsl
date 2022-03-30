@@ -27,11 +27,12 @@ h5 {
   flex-basis: 100%;
 }
 
-color-token,
 color-defn,
 color-vision,
 color-contrast,
-color-illuminant {
+color-illuminant,
+palette-token,
+color-dict {
   flex: 1;
   flex-basis: 45ch;
 }
@@ -39,7 +40,5 @@ color-illuminant {
 color-token {
   --data-family: Roboto, sans-serif;
   --code-family: Roboto Mono, monsopace;
-  flex: 1;
-  flex-basis: 45ch;
 }
 /* Workspace:2 ends here */
