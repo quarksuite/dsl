@@ -1,17 +1,16 @@
-<!-- [[file:Notebook.org::*Workspace][Workspace:1]] -->
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>QuarkSuite v2 DSL Workspace</title>
-    <script type="module" src="/color.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link
-      href="https://fonts.googleapis.com/css2?family=Roboto+Mono&family=Roboto:ital,wght@0,100;0,300;0,400;0,700;0,900;1,400&display=swap"
-      rel="stylesheet"
-    />
+    <script type="module" src="/color-adjust.js"></script>
+    <script type="module" src="/color-mix.js"></script>
+    <script type="module" src="/color-harmony.js"></script>
+    <script
+      type="module"
+      src="https://cdn.jsdelivr.net/gh/quarksuite/elements@0.1.0-14/color.js"
+    ></script>
     <link rel="stylesheet" href="/style.css" />
   </head>
   <body>
@@ -19,78 +18,175 @@
       <h1>QuarkSuite v2 DSL Workspace</h1>
     </header>
     <main>
-      <section>
-        <h2>Base Color</h2>
-        <color-defn
-          as="base"
-          swatch="#bada55"
-          action="convert"
-          to="rgb"
-        ></color-defn>
-        <color-defn
-          as="@base"
-          from="base"
-          action="adjust"
-          chroma="-10"
-        ></color-defn>
-        <color-defn
-          as="brand"
-          from="@base"
-          action="mix"
-          target="dodgerblue"
-          strength="40"
-        ></color-defn>
-      </section>
-      <section>
-        <h2>Harmony</h2>
-        <color-defn
-          as="scheme"
-          from="brand"
-          action="harmony"
-          configuration="triadic"
-        ></color-defn>
-      </section>
-      <section>
-        <h2>Adjusted Harmony</h2>
+      <section class="workspace">
+        <h2>Color</h2>
         <section>
-          <color-defn as="main" from="scheme.0"></color-defn>
-          <color-defn
-            as="accent"
-            from="scheme.1"
-            action="adjust"
-            lightness="-10"
-            chroma="20"
-          ></color-defn>
-          <color-defn
-            as="highlight"
-            from="scheme.2"
-            action="adjust"
-            lightness="10"
-            chroma="20"
-          ></color-defn>
+          <h3>&lt;color-adjust&gt;</h3>
+          <h4>Single Adjustment</h4>
+          <color-adjust lightness="-10" chroma="10" hue="90">
+            <color-token as="base" color="#bada55"></color-token>
+          </color-adjust>
+          <h4>Batch Adjustment</h4>
+          <color-adjust lightness="-10" chroma="10" hue="90">
+            <color-token as="base" color="#bada55"></color-token>
+            <color-token as="secondary" color="#c0ffee"></color-token>
+            <color-token as="tertiary" color="#f330aa"></color-token>
+          </color-adjust>
+          <h4>Interpolated Adjustment</h4>
+          <color-adjust lightness="-10" chroma="10" hue="90">
+            <color-scale as="adjusted">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-adjust>
         </section>
         <section>
-          <color-defn
-            as="final-scheme"
-            from="main accent highlight"
-          ></color-defn>
+          <h3>&lt;color-mix&gt;</h3>
+          <h4>Single Mix</h4>
+          <color-mix strength="50" target="rgb(50, 120, 245)">
+            <color-token as="mixed" color="#bada55"></color-token>
+          </color-mix>
+          <h4>Batch Mix</h4>
+          <color-mix strength="50" target="rgb(50, 120, 245)">
+            <color-token as="base" color="#bada55"></color-token>
+            <color-token as="secondary" color="#c0ffee"></color-token>
+            <color-token as="tertiary" color="#f330aa"></color-token>
+          </color-mix>
+          <h4>Interpolated Adjustment</h4>
+          <color-mix strength="100" target="#3278f5">
+            <color-scale as="mixture">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-mix>
         </section>
-      </section>
-      <h2>Palette Generation</h2>
-      <section>
-        <color-dict
-          as="ui"
-          from="main"
-          configuration="artistic"
-          contrast="100"
-          stated
-          action="a11y"
-          rating="AA"
-          large
-          dark
-        ></color-dict>
+        <section>
+          <h3>&lt;color-harmony&gt;</h3>
+          <h4>Dyadic</h4>
+          <color-harmony configuration="dyadic">
+            <color-scale as="dyad">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Dyadic Accent</h4>
+          <color-harmony configuration="dyadic" accented>
+            <color-scale as="dyad.accent">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Complementary</h4>
+          <color-harmony configuration="complementary">
+            <color-scale as="complementary">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Analogous</h4>
+          <color-harmony configuration="analogous">
+            <color-scale as="analgous">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Analogous Accent</h4>
+          <color-harmony configuration="analogous" accented>
+            <color-scale as="analgous.accent">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Split Complementary</h4>
+          <color-harmony configuration="split">
+            <color-scale as="split">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Split Complementary Accent</h4>
+          <color-harmony configuration="split" accented>
+            <color-scale as="split.accent">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Triadic</h4>
+          <color-harmony configuration="triadic">
+            <color-scale as="triadic">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Triadic Accent</h4>
+          <color-harmony configuration="triadic" accented>
+            <color-scale as="triadic.accent">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Clash</h4>
+          <color-harmony configuration="clash">
+            <color-scale as="clash">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Clash Accent</h4>
+          <color-harmony configuration="clash" accented>
+            <color-scale as="clash.accent">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Double</h4>
+          <color-harmony configuration="double">
+            <color-scale as="double">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Tetradic</h4>
+          <color-harmony configuration="tetradic">
+            <color-scale as="tetradic">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+          <h4>Square</h4>
+          <color-harmony configuration="square">
+            <color-scale as="square">
+              <color-token color="#bada55"></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+              <color-token></color-token>
+            </color-scale>
+          </color-harmony>
+        </section>
       </section>
     </main>
   </body>
 </html>
-<!-- Workspace:1 ends here -->

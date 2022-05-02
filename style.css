@@ -1,4 +1,3 @@
-/* [[file:Notebook.org::*Workspace][Workspace:2]] */
 :root {
   margin: 0;
   padding: 0;
@@ -8,37 +7,21 @@
   box-sizing: border-box;
 }
 
-body {
-  font-family: Roboto, sans-serif;
-}
+color-scale,
+color-adjust,
+color-mix,
+color-harmony {
+  --spacing: 1.5ex;
 
-section {
   display: flex;
   flex-flow: row wrap;
-  gap: 1ex;
-  flex: 1;
-  flex-basis: 100%;
+  gap: var(--spacing);
 }
 
-h2,
-h3,
-h4,
-h5 {
-  flex-basis: 100%;
-}
-
-color-defn,
-color-vision,
-color-contrast,
-color-illuminant,
-palette-token,
-color-dict {
+* > color-scale {
   flex: 1;
-  flex-basis: 45ch;
 }
 
 color-token {
-  --data-family: Roboto, sans-serif;
-  --code-family: Roboto Mono, monsopace;
+  flex: 1;
 }
-/* Workspace:2 ends here */
